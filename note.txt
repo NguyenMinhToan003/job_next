@@ -1,0 +1,6 @@
+flow login use cookie
+
+
+flow login use Bearer token 
+
+-> login ss-> set cookie Bearer -> call apl local server client setCookie -> setCookie Client -> server calll use cookieStore, client Call use useContext(cookie)

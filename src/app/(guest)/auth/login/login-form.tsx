@@ -1,10 +1,12 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/button"
+import { authAPI } from "@/apiResponse/auth";
+import { useAppProvider } from "@/app/providers/useAppProvider";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,40 +14,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
-import envConfig from "@/config"
-
-const formSchema = z.object({
-  email: z.string().min(2, {
-    message: "Email must be at least 2 characters.",
-  }).email("This doesn't look like a valid email."),
-  password: z.string().min(1, {
-    message: "Password must be at least 1 character.",
-  }),
-})
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  LoginRequest,
+  LoginRequestType,
+} from "@/schemaValidations/auth.schema";
 
 export function LoginForm() {
+  const { accessToken, setAccessToken } = useAppProvider();
   // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<LoginRequestType>({
+    resolver: zodResolver(LoginRequest),
     defaultValues: {
       email: "",
       password: "",
     },
-  })
+  });
 
   // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await fetch(`${envConfig().NEXT_PUBLIC_API_ENDPOINT}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    }).then(res => res.json())
-    console.log(result);
+  async function onSubmit(values: LoginRequestType) {
+    const result = await authAPI.login(values);
+    setAccessToken(result.payload.accessToken || "");
+    await authAPI.authServer(result.payload);
   }
   return (
     <Form {...form}>
@@ -76,12 +67,14 @@ export function LoginForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className='w-full font-bold'>Đăng nhập</Button>
-
-        <Separator className='my-4'/>
-        <Button variant='outline' className='w-full'>Đăng nhập với Google</Button>
-        <Button variant='outline' className='w-full'>Đăng nhập với Facebook</Button>
+        <Button type="submit" className="w-full font-bold">
+          Đăng nhập
+        </Button>
+        <Button type="button" variant="outline" className="w-full">
+          Đăng nhập với Google
+        </Button>
+        {accessToken && <p>Access Token: {accessToken}</p>}
       </form>
     </Form>
-  )
+  );
 }

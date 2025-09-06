@@ -5,7 +5,6 @@ export const metadata: Metadata = {
   description: "Đăng nhập vào tài khoản của bạn",
 };
 
-
 export default function LoginLayout({
   children,
 }: Readonly<{
